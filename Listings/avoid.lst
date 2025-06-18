@@ -1,0 +1,58 @@
+C51 COMPILER V9.60.7.0   AVOID                                                             12/17/2024 14:45:18 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE AVOID
+OBJECT MODULE PLACED IN .\Objects\avoid.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE avoid.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\User;.\System) DEBUG OBJ
+                    -ECTEXTEND PRINT(.\Listings\avoid.lst) OBJECT(.\Objects\avoid.obj)
+
+line level    source
+
+   1          #include "global.h" 
+   2          
+   3          void avoid_Init(){
+   4   1              /*引脚配置*/
+   5   1              GPIO_InitTypeDef output_gpio_config = {GPIO_OUT_PP, GPIO_Pin_6};//输出引脚配置
+   6   1              GPIO_InitTypeDef input_gpio_config = {GPIO_HighZ, GPIO_Pin_7};//输入引脚配置
+   7   1              /*设置引脚模式*/
+   8   1              GPIO_Init(GPIO_P1, &output_gpio_config);
+   9   1              GPIO_Init(GPIO_P1, &input_gpio_config);
+  10   1      }
+  11          
+  12          void HCSR04_Trigger(){
+  13   1              GPIO_ResetBits(GPIO_P1, GPIO_Pin_6);//初始置0
+  14   1              DelayUs(2);//平稳信号
+  15   1              GPIO_SetBits(GPIO_P1, GPIO_Pin_6);//初始置0
+  16   1              DelayUs(20);//发送测距信号
+  17   1              GPIO_ResetBits(GPIO_P1, GPIO_Pin_6);//结束发送
+  18   1      }
+  19          
+  20          unsigned short int getDistance(){
+  21   1              uint16_t time = 0;
+  22   1              HCSR04_Trigger();
+  23   1              while(GPIO_ReadInputDataBit == 0);//等待超声波返回信号
+  24   1              while(GPIO_ReadInputDataBit == 1){
+  25   2                      time++;//计算高电平时间
+  26   2              }
+  27   1              return (time * 0.017); //单位cm
+  28   1      }
+  29          
+  30          void avoid_function(){
+  31   1              //初始化
+  32   1              avoid_Init();
+  33   1              DelayUs(2);
+  34   1              //发送测距信号
+  35   1              HCSR04_Trigger();
+  36   1              //获得距离
+  37   1              unsigned short int distance = getDistance();
+*** ERROR C141 IN LINE 37 OF avoid.c: syntax error near 'unsigned', expected '__asm'
+*** ERROR C202 IN LINE 37 OF avoid.c: 'distance': undefined identifier
+  38   1              if(distance < 20){
+*** ERROR C202 IN LINE 38 OF avoid.c: 'distance': undefined identifier
+  39   2                      Motor_Run(BACKWARDS, PWM_DUTY / 100 * 90);
+  40   2              }else{
+  41   2                      
+  42   2              }
+  43   1      }
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  3 ERROR(S)

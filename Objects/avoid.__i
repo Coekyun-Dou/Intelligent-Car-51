@@ -1,0 +1,1 @@
+"avoid.c" LARGE OPTIMIZE (8,SPEED) BROWSE INCDIR(.\User;.\System) DEBUG OBJECTEXTEND PRINT(.\Listings\avoid.lst) OBJECT(.\Objects\avoid.obj)

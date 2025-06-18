@@ -1,0 +1,189 @@
+C51 COMPILER V9.60.7.0   REMOTE_CONTROL                                                    12/21/2024 15:42:25 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE REMOTE_CONTROL
+OBJECT MODULE PLACED IN .\Objects\remote control.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE remote control.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\User;.\System) 
+                    -DEBUG OBJECTEXTEND PRINT(.\Listings\remote control.lst) TABS(2) OBJECT(.\Objects\remote control.obj)
+
+line level    source
+
+   1          #include "remote_control.h"
+   2          
+   3          void Remote_Init(){
+   4   1        
+   5   1        
+   6   1        /*开启外部中断，模式为下降沿触发*/
+   7   1        IT1 = 1;  // 设置 INT1 为下降沿触发
+   8   1          EX1 = 1;  // 使能外部中断1
+   9   1          EA = 1;   // 开启总中断
+  10   1      //  c[9] = '\0';
+  11   1      }
+  12          
+  13          void Start_Control(){
+  14   1        /*1为避障 2为循迹 方向键对应方向 方向键中间的按键为停止*/
+  15   1        while(1){
+  16   2          switch(data_value){
+  17   3            case 0x46:
+  18   3              //前进
+  19   3              Motor_Run(FORWARD, PWM_DUTY / 100 * 50);
+  20   3              DelayMs(250);
+  21   3              data_value = 0x40;
+  22   3              break;
+  23   3            case 0x40:
+  24   3              //停止
+  25   3              Motor_Run(STOP, PWM_DUTY / 100 * 50);
+  26   3              break;
+  27   3            case 0x44:
+  28   3              //原地左转
+  29   3              Motor_Run(SPINTURNLEFT, PWM_DUTY / 100 * 50);
+  30   3              DelayMs(50);
+  31   3              data_value = 0x40;
+  32   3              break;
+  33   3            case 0x43:
+  34   3              //原地右转
+  35   3              Motor_Run(SPINTURNRIGHT, PWM_DUTY / 100 * 50);
+  36   3              DelayMs(50);
+  37   3              data_value = 0x40;
+  38   3              break;
+  39   3            case 0x15:
+  40   3              //后退
+  41   3              Motor_Run(BACKWARDS, PWM_DUTY / 100 * 50);
+  42   3              DelayMs(250);
+  43   3              data_value = 0x40;
+  44   3              break;
+  45   3            case 0x0c:
+  46   3              //开启避障
+  47   3              Start_Avoid_Obstacle();
+  48   3              DelayUs(20);
+  49   3              break;
+  50   3            case 0x18:
+  51   3              //开启循迹
+  52   3              Start_Follow_Trail();
+  53   3              DelayUs(20);
+  54   3              break;
+C51 COMPILER V9.60.7.0   REMOTE_CONTROL                                                    12/21/2024 15:42:25 PAGE 2   
+
+  55   3            default:
+  56   3              data_value = 0x40;
+  57   3              break;
+  58   3          }
+  59   2        }
+  60   1      }
+  61          
+  62          // 外部中断1服务函数
+  63          void EX1_ISR(void) interrupt 2 {
+  64   1        EA = 0;
+  65   1        EX1 = 0;  // 关闭外部中断1
+  66   1        
+  67   1        count = 0;
+  68   1        
+  69   1        /*读取引导码*/
+  70   1        while(P33 == 0){
+  71   2          count++;
+  72   2          DelayUs(100); 
+  73   2        }
+  74   1        
+  75   1        if(count >= 49){
+  76   2          count = 0;
+  77   2          while(P33 == 1){
+  78   3            count++;
+  79   3            DelayUs(100);
+  80   3          }
+  81   2          if(count >= 22){
+  82   3            //引导码通过
+  83   3            data_bits_idx = 0;  // 用户码+数据码的索引
+  84   3            //等待数据信号的高电平出现，延迟800us，检测是否还是高电平
+  85   3            while(data_bits_idx < 32){
+  86   4              while(P33 == 0);//等待出现高电平
+  87   4              count = 0;
+  88   4              while(P33 == 1){
+  89   5                count++;
+  90   5                DelayUs(100);
+  91   5              }
+  92   4              if(count > 8){
+  93   5                data_bits[data_bits_idx] = 1;
+  94   5              }
+  95   4              else{
+  96   5                data_bits[data_bits_idx] = 0;
+  97   5              }
+  98   4              data_bits_idx++;
+  99   4            }
+ 100   3      //      /*检验数据内容*/
+ 101   3      //      j = 0;
+ 102   3      //      for(;j < 8;j++){
+ 103   3      //        c[j] = data_bits[j] + '0';
+ 104   3      //      }
+ 105   3      //      OLED_ShowString(1, 1, c);
+ 106   3      //      for(; j < 16; j++){
+ 107   3      //        c[j - 8] = data_bits[j] + '0';
+ 108   3      //      }
+ 109   3      //      OLED_ShowString(2, 1, c);
+ 110   3      //      for(; j < 24; j++){
+ 111   3      //        c[j - 16] = data_bits[j] + '0';
+ 112   3      //      }
+ 113   3      //      OLED_ShowString(3, 1, c);
+ 114   3      //      for(; j < 32; j++){
+ 115   3      //        c[j - 24] = data_bits[j] + '0';
+ 116   3      //      }
+C51 COMPILER V9.60.7.0   REMOTE_CONTROL                                                    12/21/2024 15:42:25 PAGE 3   
+
+ 117   3      //      OLED_ShowString(4, 1, c);
+ 118   3      //      DelayMs(5000);
+ 119   3      //      OLED_Clear();
+ 120   3            flag = 0;
+ 121   3            //判断用户码是否正确
+ 122   3            for(count = 0; count < 8; count++){
+ 123   4              if(data_bits[count] != 0 && data_bits[count + 8] != 1){
+ 124   5                flag = 1;
+ 125   5                break;
+ 126   5              }
+ 127   4            }
+ 128   3            if(flag == 0){
+ 129   4              //用户码验证通过
+ 130   4              count = 0;
+ 131   4              //检验数据
+ 132   4              flag = 0;
+ 133   4              for(count = 0; count < 8; count++){
+ 134   5                if(data_bits[count + 16] == data_bits[count + 24]){
+ 135   6                flag = 1;
+ 136   6                break;
+ 137   6                }
+ 138   5              }
+ 139   4              //判断数据是否通过检验
+ 140   4              if(flag == 0){  
+ 141   5                //获取16进制值
+ 142   5                data_value = 0x00;
+ 143   5                // 逆序读取 16 到 23 位     
+ 144   5                for(j = 16; j < 24; j++){
+ 145   6                  if(data_bits[j] == 1){
+ 146   7                    data_value |= (0x01 << j - 16);
+ 147   7                  }
+ 148   6                }
+ 149   5      //          c[0] = data_value / 16 + '0';
+ 150   5      //          c[1] = data_value % 16 + '0';
+ 151   5      //          c[2] = '\0';
+ 152   5      //          OLED_ShowString(4, 1, c);
+ 153   5              }
+ 154   4            }
+ 155   3          }
+ 156   2        }
+ 157   1        TCON |= 0x04; //中断标志位清零
+ 158   1        EX1 = 1;  // 开启外部中断1
+ 159   1        EA = 1;
+ 160   1      }
+ 161          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    646    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     48    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
