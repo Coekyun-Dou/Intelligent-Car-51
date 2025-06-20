@@ -1,0 +1,48 @@
+C51 COMPILER V9.60.7.0   AVOID                                                             12/27/2023 11:34:46 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE AVOID
+OBJECT MODULE PLACED IN .\Objects\Avoid.obj
+COMPILER INVOKED BY: C:\Program Files (x86)\keil5\C51\BIN\C51.EXE Avoid\Avoid.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\
+                    -User;.\System) DEBUG OBJECTEXTEND PRINT(.\Listings\Avoid.lst) OBJECT(.\Objects\Avoid.obj)
+
+line level    source
+
+   1          /**/
+   2          
+   3          #include "global.h"
+   4          
+   5          void AvoidSensor() {
+   6   1              int speedtest2 = 50;
+   7   1              GPIO_InitTypeDef GPIO_InitStructure;
+   8   1              GPIO_InitStructure.GPIO_Mode = GPIO_HighZ;
+   9   1              GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3;
+  10   1              GPIO_Init(GPIO_P2, &GPIO_InitStructure);
+  11   1              if ((AvoidSensorLeft == 0) && (AvoidSensorRight == 1)){
+  12   2                      Motor_Run (SPINTURNRIGHT, PWM_DUTY / 100 * speedtest2);
+  13   2      
+  14   2              } else if ((AvoidSensorLeft == 1) && (AvoidSensorRight == 0)){
+  15   2                      Motor_Run (SPINTURNLEFT, PWM_DUTY / 100 * speedtest2);
+  16   2      
+  17   2              } else if ((AvoidSensorLeft == 0) && (AvoidSensorRight == 0)){
+  18   2                      Motor_Run (SPINTURNRIGHT, PWM_DUTY / 100 * speedtest2);
+  19   2      
+  20   2              } else if ((AvoidSensorLeft == 1) && (AvoidSensorRight == 1)){
+  21   2                      Motor_Run (FORWARD, PWM_DUTY / 100 * speedtest2);
+  22   2      
+  23   2              }
+  24   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    149    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----       4
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,198 @@
+C51 COMPILER V9.60.7.0   IR                                                                06/20/2025 16:17:18 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE IR
+OBJECT MODULE PLACED IN .\Objects\IR.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE IR.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\User;.\System) DEBUG OBJECT
+                    -EXTEND PRINT(.\Listings\IR.lst) TABS(2) OBJECT(.\Objects\IR.obj)
+
+line level    source
+
+   1          #include "global.h" 
+   2          
+   3          static uint32_t time=0;
+   4          
+   5          uint32_t IR_time=0;
+   6          uint32_t IR_state=0;
+   7          uint8_t IR_Data[4];
+   8          uint8_t IR_pData=0;
+   9          uint8_t IR_DataFlag=0;
+  10          uint8_t IR_RepeatFlag=0;
+  11          uint8_t IR_Address=0;
+  12          uint8_t IR_Command=0;
+  13          
+  14          uint8_t Address;
+  15          uint8_t Command;
+  16          
+  17          
+  18          void IR_control_Init(void){
+  19   1        IT1=1;
+  20   1        IE1=0;
+  21   1        EX1=1;
+  22   1        EA=1;
+  23   1        PX0=0;
+  24   1        Timer2_myInit();
+  25   1        while(1){
+  26   2          if(IR_getDataFlag() || IR_getRepeatFlag()){
+  27   3            Address=IR_getAddress();
+  28   3            Command=IR_getCommand();
+  29   3            if(Command==0x15){//后退
+  30   4              Motor_Run(BACKWARDS, PWM_DUTY / 100 * 30);
+  31   4              DelayMs(1000);
+  32   4              Motor_Run(STOP, PWM_DUTY / 100 * 20);
+  33   4            }else if(Command==0x46){//前进
+  34   4              Motor_Run(FORWARD, PWM_DUTY / 100 * 30);
+  35   4              DelayMs(1000);
+  36   4              Motor_Run(STOP, PWM_DUTY / 100 * 20);
+  37   4            }else if(Command==0x44){//左转
+  38   4              Motor_Run(SPINTURNLEFT, PWM_DUTY / 100 * 30);
+  39   4              DelayMs(1000);
+  40   4              Motor_Run(STOP, PWM_DUTY / 100 * 20);
+  41   4            }else if(Command==0x43){//右转
+  42   4              Motor_Run(SPINTURNRIGHT, PWM_DUTY / 100 * 30);
+  43   4              DelayMs(1000);
+  44   4              Motor_Run(STOP, PWM_DUTY / 100 * 20);
+  45   4            }else if(Command==0x40){//停止-中间按钮
+  46   4              Motor_Run(STOP, PWM_DUTY / 100 * 20);
+  47   4            }
+  48   3          }
+  49   2        }
+  50   1      }
+  51          
+  52          void Int1_Routine(void)interrupt 2
+  53          {
+  54   1        if(IR_state==0){
+C51 COMPILER V9.60.7.0   IR                                                                06/20/2025 16:17:18 PAGE 2   
+
+  55   2          Timer2_settime(0);
+  56   2          Timer2_run(1);
+  57   2          IR_state=1;
+  58   2        }else if(IR_state==1){
+  59   2          IR_time=Timer2_gettime();
+  60   2          Timer2_settime(0);
+  61   2          if(IR_time>13500-1120 && IR_time<13500+1120){
+  62   3            IR_state=2;
+  63   3            OLED_ShowString(4, 7, "yees");
+  64   3          }else if(IR_time>11250-500 && IR_time<11250+500){
+  65   3            IR_RepeatFlag=1;
+  66   3            Timer2_run(0);
+  67   3            IR_state==0;
+*** WARNING C275 IN LINE 67 OF IR.c: expression with possibly no effect
+  68   3            OLED_ShowString(3, 1, "world");
+  69   3          }else{
+  70   3            IR_state==1;
+*** WARNING C275 IN LINE 70 OF IR.c: expression with possibly no effect
+  71   3            OLED_ShowString(2, 7, "start!");
+  72   3          }
+  73   2        }else if(IR_state==2){
+  74   2          IR_time=Timer2_gettime();
+  75   2          Timer2_settime(0);
+  76   2          if(IR_time>1120-500 && IR_time<1120+500){
+  77   3            IR_Data[IR_pData/8]&=~(0x01<<(IR_pData%8));
+  78   3            IR_pData++;
+  79   3          }else if(IR_time>2250-500 && IR_time<2250+500){
+  80   3            IR_Data[IR_pData/8]|=(0x01<<(IR_pData%8));
+  81   3            IR_pData++;
+  82   3          }else{
+  83   3            IR_pData=0;
+  84   3            IR_state==1;
+*** WARNING C275 IN LINE 84 OF IR.c: expression with possibly no effect
+  85   3          }
+  86   2          if(IR_pData>=32){
+  87   3            IR_pData=0;
+  88   3            if((IR_Data[0]==~IR_Data[1]) && (IR_Data[2]==~IR_Data[3])){
+  89   4              IR_Address=IR_Data[0];
+  90   4              IR_Command=IR_Data[2];
+  91   4              IR_DataFlag=1;
+  92   4            }
+  93   3            Timer2_run(0);
+  94   3            IR_state=0;
+  95   3          }
+  96   2        }
+  97   1      }
+  98          
+  99          
+ 100          void Timer2_myInit(void){
+ 101   1      //  TIM_InitTypeDef time_str;
+ 102   1      //  //time_str.TIM_Mode=TIM_16BitAutoReload;    //????,   TIM_16BitAutoReload,TIM_16Bit,TIM_8BitAutoReload,TI
+             -M_16BitAutoReloadNoMask
+ 103   1      //  time_str.TIM_Polity=PolityHigh;   //????? PolityHigh,PolityLow
+ 104   1      //  time_str.TIM_Interrupt=ENABLE;  //????    ENABLE,DISABLE
+ 105   1      //  time_str.TIM_ClkSource=TIM_CLOCK_1T;  //???   TIM_CLOCK_1T,TIM_CLOCK_12T,TIM_CLOCK_Ext
+ 106   1      //  time_str.TIM_ClkOut=ENABLE;   //???????,  ENABLE,DISABLE
+ 107   1      //  time_str.TIM_Value=61183;   //????
+ 108   1      //  time_str.TIM_Run=DISABLE;   //????    ENABLE,DISABLE
+ 109   1      //  Timer_Inilize(Timer2,&time_str);
+ 110   1          AUXR &= 0xFB;   //?????12T??
+ 111   1          T2L = 0xEE;   //??????
+ 112   1          T2H = 0xFF;   //??????__10us
+C51 COMPILER V9.60.7.0   IR                                                                06/20/2025 16:17:18 PAGE 3   
+
+ 113   1          IE2|=0x04;
+ 114   1          EA=1;
+ 115   1          //AUXR |= 0x10;   //???2????
+ 116   1          
+ 117   1      }
+ 118          
+ 119          void Timer2_Routine(void)interrupt 12
+ 120          {
+ 121   1          //??????????10us
+ 122   1          time=time+10;
+ 123   1      }
+ 124          
+ 125          
+ 126          void Timer2_run(int Flag){
+ 127   1        if(Flag==1){AUXR |= 0x10;}
+ 128   1        else{AUXR &= 0xEF;}
+ 129   1      }
+ 130          
+ 131          void Timer2_settime(uint32_t value){
+ 132   1        time=0;
+ 133   1      }
+*** WARNING C280 IN LINE 131 OF IR.c: 'value': unreferenced local variable
+ 134          
+ 135          uint32_t Timer2_gettime(void){
+ 136   1        //return ((T2H<<8) | T2L);
+ 137   1        return time;
+ 138   1      }
+ 139          
+ 140          uint8_t IR_getDataFlag(void){
+ 141   1        if(IR_DataFlag){
+ 142   2          IR_DataFlag=0;
+ 143   2          return 1;
+ 144   2        }
+ 145   1        return 0;
+ 146   1      }
+ 147          
+ 148          uint8_t IR_getRepeatFlag(void){
+ 149   1        if(IR_RepeatFlag){
+ 150   2          IR_RepeatFlag=0;
+ 151   2          return 1;
+ 152   2        }
+ 153   1        return 0;
+ 154   1      }
+ 155          
+ 156          uint8_t IR_getAddress(void){
+ 157   1        return IR_Address;
+ 158   1      }
+ 159          
+ 160          uint8_t IR_getCommand(void){
+ 161   1        return IR_Command;
+ 162   1      }
+ 163          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    929    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =     23       4
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+C51 COMPILER V9.60.7.0   IR                                                                06/20/2025 16:17:18 PAGE 4   
+
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  4 WARNING(S),  0 ERROR(S)

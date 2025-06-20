@@ -1,0 +1,123 @@
+C51 COMPILER V9.60.7.0   APP                                                               12/27/2023 11:34:46 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE APP
+OBJECT MODULE PLACED IN .\Objects\app.obj
+COMPILER INVOKED BY: C:\Program Files (x86)\keil5\C51\BIN\C51.EXE Tracking\app.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.
+                    -\User;.\System) DEBUG OBJECTEXTEND PRINT(.\Listings\app.lst) OBJECT(.\Objects\app.obj)
+
+line level    source
+
+   1          #include "global.h"
+   2          
+   3          
+   4          /**/
+   5          void Tracking()
+   6          {
+   7   1              int speedtest = 120;
+   8   1                      //0为识别到黑线
+   9   1              GPIO_InitTypeDef GPIO_InitStructure;
+  10   1              GPIO_InitStructure.GPIO_Mode = GPIO_HighZ;
+  11   1              GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3;
+  12   1              GPIO_Init(GPIO_P2, &GPIO_InitStructure);
+  13   1              if((TrackSensorLeft1 == 1) && (TrackSensorLeft2 == 1) && (TrackSensorRight1 == 1) && (TrackSensorRight2 =
+             -= 1))//未识别到路径
+  14   1              {       
+  15   2              }else if((TrackSensorLeft1 == 1) && (TrackSensorLeft2 == 0) && (TrackSensorRight1 == 0) && (TrackSensorRi
+             -ght2 == 1))//路径在正下方
+  16   1              {
+  17   2                      Motor_Run(FORWARD, PWM_DUTY / 100 * speedtest);
+  18   2                      
+  19   2              }else if((TrackSensorLeft1 == 0) && (TrackSensorLeft2 == 0) && (TrackSensorRight1 == 0) && (TrackSensorRi
+             -ght2 == 0))//十字路口
+  20   1              {
+  21   2                      Motor_Run(FORWARD, PWM_DUTY / 100 * speedtest);
+  22   2                      
+  23   2              }else if((TrackSensorLeft1 == 1) && (TrackSensorLeft2 == 1) && (TrackSensorRight1 == 0) && (TrackSensorRi
+             -ght2 == 1))//右偏轻微
+  24   1              {
+  25   2                      Motor_Run(FORWARD, PWM_DUTY / 100 * speedtest);
+  26   2                      
+  27   2              }else if((TrackSensorLeft1 == 1) && (TrackSensorLeft2 == 1) && (TrackSensorRight1 == 0) && (TrackSensorRi
+             -ght2 == 0))//右偏较多
+  28   1              {
+  29   2                      Motor_Run(FORWARD, PWM_DUTY / 100 * speedtest);
+  30   2                      
+  31   2              }else if((TrackSensorLeft1 == 1) && (TrackSensorLeft2 == 1) && (TrackSensorRight1 == 1) && (TrackSensorRi
+             -ght2 == 0))//右偏过多
+  32   1              {
+  33   2                      Motor_Run(TURNRIGHT, PWM_DUTY / 100 * speedtest);
+  34   2                      
+  35   2              }else if((TrackSensorLeft1 == 1) && (TrackSensorLeft2 == 0) && (TrackSensorRight1 == 1) && (TrackSensorRi
+             -ght2 == 1))//左偏轻微
+  36   1              {
+  37   2                      Motor_Run(FORWARD, PWM_DUTY / 100 * speedtest);
+  38   2                      
+  39   2              }else if((TrackSensorLeft1 == 0) && (TrackSensorLeft2 == 0) && (TrackSensorRight1 == 1) && (TrackSensorRi
+             -ght2 == 1))//左偏较多
+  40   1              {
+  41   2                      Motor_Run(FORWARD, PWM_DUTY / 100 * speedtest);
+  42   2                      
+  43   2              }else if((TrackSensorLeft1 == 0) && (TrackSensorLeft2 == 1) && (TrackSensorRight1 == 1) && (TrackSensorRi
+             -ght2 == 1))//左偏过多
+  44   1              {
+  45   2                      Motor_Run(TURNLEFT, PWM_DUTY / 100 * speedtest);
+C51 COMPILER V9.60.7.0   APP                                                               12/27/2023 11:34:46 PAGE 2   
+
+  46   2                      
+  47   2              }else if((TrackSensorLeft1 == 1) && (TrackSensorLeft2 == 0) && (TrackSensorRight1 == 0) && (TrackSensorRi
+             -ght2 == 0))//直角右转
+  48   1              {
+  49   2                      Motor_Run(SPINTURNRIGHT, PWM_DUTY / 100 * speedtest);
+  50   2                      
+  51   2              }else if((TrackSensorLeft1 == 0) && (TrackSensorLeft2 == 0) && (TrackSensorRight1 == 0) && (TrackSensorRi
+             -ght2 == 1))//直角左转
+  52   1              {
+  53   2                      Motor_Run(SPINTURNLEFT, PWM_DUTY / 100 * speedtest);
+  54   2                      
+  55   2              }else if((TrackSensorLeft1 == 1) && (TrackSensorLeft2 == 0) && (TrackSensorRight1 == 1) && (TrackSensorRi
+             -ght2 == 0))//异常情况，进入弧形弯道凹口
+  56   1              {
+  57   2                      Motor_Run(TURNRIGHT, PWM_DUTY / 100 * speedtest);
+  58   2                      
+  59   2              }else if((TrackSensorLeft1 == 0) && (TrackSensorLeft2 == 1) && (TrackSensorRight1 == 0) && (TrackSensorRi
+             -ght2 == 1))//异常情况，进入弧形弯道凹口
+  60   1              {
+  61   2                      Motor_Run(TURNLEFT, PWM_DUTY / 100 * speedtest);
+  62   2                      
+  63   2              }else if((TrackSensorLeft1 == 0) && (TrackSensorLeft2 == 1) && (TrackSensorRight1 == 1) && (TrackSensorRi
+             -ght2 == 0))//异常情况
+  64   1              {
+  65   2                      Motor_Run(TURNRIGHT, PWM_DUTY / 100 * speedtest);
+  66   2                      DelayMs(25);
+  67   2                      Motor_Run(TURNLEFT, PWM_DUTY / 100 * speedtest);
+  68   2                      DelayMs(25);
+  69   2                      Motor_Run(SPINTURNRIGHT, PWM_DUTY / 100 * speedtest);
+  70   2              }else if((TrackSensorLeft1 == 0) && (TrackSensorLeft2 == 1) && (TrackSensorRight1 == 0) && (TrackSensorRi
+             -ght2 == 0))//异常情况，可能是类似十字的岔口
+  71   1              {
+  72   2                      Motor_Run(FORWARD, PWM_DUTY / 100 * speedtest);
+  73   2                      
+  74   2              }else if((TrackSensorLeft1 == 0) && (TrackSensorLeft2 == 0) && (TrackSensorRight1 == 1) && (TrackSensorRi
+             -ght2 == 0))//异常情况，可能是类似十字的岔口
+  75   1              {
+  76   2                      Motor_Run(FORWARD, PWM_DUTY / 100 * speedtest);
+  77   2                      
+  78   2              }
+  79   1      }
+  80          
+  81          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    517    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----       4
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
